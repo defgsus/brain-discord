@@ -69,7 +69,7 @@ class BrianBot(discord.Client):
 
 
 if __name__ == "__main__":
-    from bot_credentials import *
+    from tools.bot_credentials import BOT_TOKEN
 
     bot = BrianBot()
     bot.run(BOT_TOKEN)
