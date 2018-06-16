@@ -165,7 +165,7 @@ class ExtraTerrestrial(NonsenseGenerator):
 
 
 NONSENSE_GENERATORS = {
-    "life": LifeOfBrian(),
+    "brian": LifeOfBrian(),
     "bladerunner": BladeRunner(),
     "e.t.": ExtraTerrestrial(),
 }

@@ -19,8 +19,8 @@ class BrianBot(discord.Client):
         super(BrianBot, self).__init__(*args, **kwargs)
         self.nonsense = None
         self.nonsense_key = ""
-        self.do_annoy = True
-        self.do_speak = True
+        # set of channels
+        self.be_quite = set()
 
     def get_members(self):
         members = set()
@@ -46,15 +46,16 @@ class BrianBot(discord.Client):
         self.nonsense_key = nonsense_key
         return []
 
-    def _send(self, channel, text, do_speak=True):
+    def _send(self, channel, text):
         if not text and not text.strip():
             return []
         msgs = split_text(text)
         for count, msg in enumerate(msgs):
             if len(msg):
-                yield from self.send_message(channel, msg, tts=self.do_speak and do_speak)
+                yield from self.send_message(channel, msg)
                 if count < len(msgs) - 1:
                     yield from self.send_typing(channel)
+        return []
 
     def on_message(self, message):
         print("(%s, %s) %s: %s" % (message.channel.name, message.channel.type,
@@ -64,12 +65,30 @@ class BrianBot(discord.Client):
             return []
 
         if self.nonsense is None:
-            yield from self.set_nonsense("life")
+            yield from self.set_nonsense("brian")
 
-        msgl = message.content.lower()
+        msgl = message.content.lower().strip("` ")
         channel = message.channel
 
+        # --- commands ---
+
+        response = None
+
+        if msgl.startswith("!py"):
+            yield from self.send_typing(channel)
+            response = evaluate_python(msgl[3:].strip("` "))
+            if "*" in response:
+                response = "`%s`" % response
+
+        if response:
+            yield from self._send(channel, response)
+            return []
+
+        # --- random stuff ---
+
         nerv_prob = 1. if str(message.channel.type) == "private" else NERV_PROB
+
+        # is bot called by name?
         is_mentioned = self.user.name.lower() in msgl or "botti" in msgl
         for x in NONSENSE_GENERATORS:
             if x in msgl:
@@ -77,19 +96,19 @@ class BrianBot(discord.Client):
                 yield from self.set_nonsense(x)
                 break
 
-        response = None
+        if is_mentioned:
+            if "schweig" in msgl or "shut up" in msgl or "schnauze" in msgl:
+                self.be_quite.add(channel.name)
+            else:
+                if channel.name in self.be_quite:
+                    self.be_quite.remove(channel.name)
 
-        if msgl.startswith("!py "):
-            response = evaluate_python(msgl[4:])
+        if channel.name not in self.be_quite and (is_mentioned or random.uniform(0, 1) <= nerv_prob):
+            yield from self._send(channel, self.nonsense.rand(0, self.get_member_names(),
+                                                              random.uniform(0, 1) <= NAME_LINE_PROB))
+        return []
 
-        if not response:
-            if random.uniform(0, 1) <= nerv_prob:
-                print("NONSENSE: %s" % self.nonsense.name)
-                yield from self._send(channel, self.nonsense.rand(0, self.get_member_names(),
-                                                                  random.uniform(0, 1) <= NAME_LINE_PROB))
-            return []
 
-        yield from self._send(channel, response)
 
     async def on_ready(self):
         print('Logged in as')
