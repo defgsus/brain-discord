@@ -1,6 +1,9 @@
 ## yet another discord bot
 
-
+He/She/It can 
+- talk nonsense from movie subtitle files 
+- evaluate python one-liners with `!py expression`
+- search on wikipedia with `!wiki [cc] [num] term`
 
 
 ### deployment

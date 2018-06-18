@@ -5,6 +5,7 @@ import discord
 from tools.messages import *
 from tools.pyeval import evaluate_python
 from tools.nonsense import NONSENSE_GENERATORS
+from tools import wiki
 
 
 NERV_PROB = .1  # probability of annoyance in group channels
@@ -87,6 +88,10 @@ class BrianBot(discord.Client):
             if "*" in response:
                 response = "`%s`" % response
 
+        if msgl.startswith("!wiki"):
+            yield from self.send_typing(channel)
+            response = self.get_wiki_results(msg[5:].strip("` "))
+
         if response:
             yield from self._send(channel, response)
             return []
@@ -116,6 +121,34 @@ class BrianBot(discord.Client):
             yield from self._send(channel, self.nonsense.rand(0, self.get_member_names(),
                                                               random.uniform(0, 1) <= NAME_LINE_PROB))
         return []
+
+    def get_wiki_results(self, term):
+        cc = None
+        limit = None
+        terms = term.split(" ")
+        while len(terms) > 1:
+            if terms[0].isdigit() and limit is None:
+                limit = int(terms[0])
+                terms = terms[1:]
+            elif len(terms[0]) == 2 and terms[0].isalpha() and cc is None:
+                cc = terms[0]
+                terms = terms[1:]
+            else:
+                break
+
+        term = " ".join(terms)
+        cc = cc or "de"
+        limit = limit or 1
+
+        try:
+            results = wiki.opensearch(term, cc=cc, limit=limit)
+            if not results:
+                response = "Habe diesen Löffel gefunden, Herr!"
+            else:
+                response = "\n".join(r["url"] for r in results)
+        except BaseException as e:
+            response = "`%s`" % e
+        return response
 
     async def on_ready(self):
         print('Logged in as')
