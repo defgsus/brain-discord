@@ -11,9 +11,11 @@ MAX_SECONDS = 4
 def evaluate_python_queue(code, queue):
     python = sys.executable
     code = """
-import random
+from random import *
 from math import *
-print(%s)
+from decimal import Decimal as D
+_func123_ = lambda: %s
+print(_func123_())
 """ % code
     try:
         ret = subprocess.check_output(
