@@ -5,7 +5,7 @@ import discord
 from tools.messages import *
 from tools.pyeval import evaluate_python
 from tools.nonsense import NONSENSE_GENERATORS
-from tools import wiki, eliza, twitter
+from tools import wiki, eliza, twitter, duckduckgo
 
 
 NERV_PROB = .1  # probability of annoyance in group channels
@@ -108,6 +108,9 @@ class BrianBot(discord.Client):
         if msgl.startswith("!tw"):
             yield from self.send_typing(channel)
             response = self.get_twitter_results(msg[msg.find(" "):].strip("` "))
+
+        if msgl.startswith("!duck") or msgl.startswith("!dd"):
+            response = duckduckgo.duckduckgo(msg[msg.find(" "):].strip("` "))
 
         if response:
             if isinstance(response, (tuple, list)):

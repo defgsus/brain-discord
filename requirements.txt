@@ -1,3 +1,4 @@
 discord.py>=0.16.12
 requests>=2.19.1
 twython>=3.7.0
+bs4>=0.0.1
