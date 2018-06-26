@@ -19,12 +19,15 @@ def duckduckgo(query):
         return "`no valid json`"
     #print(data)
 
+    if not data.get("Heading"):
+        return "Nix"
+
     return "**%s**\n%s\n%s" % (
         data.get("Heading"),
-        bs4.BeautifulSoup(data.get("AbstractText")).text,
+        bs4.BeautifulSoup(data.get("AbstractText"), "html.parser").text,
         data.get("AbstractURL"),
     )
 
 
 if __name__ == "__main__":
-    print(duckduckgo("django modeladmin"))
+    print(duckduckgo("duckduckgo"))
