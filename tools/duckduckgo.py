@@ -2,6 +2,10 @@ import requests
 import json
 import bs4
 
+"""
+https://duckduckgo.com/api
+"""
+
 
 def duckduckgo(query):
     try:

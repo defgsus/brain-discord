@@ -5,7 +5,7 @@ import discord
 from tools.messages import *
 from tools.pyeval import evaluate_python
 from tools.nonsense import NONSENSE_GENERATORS
-from tools import wiki, eliza, twitter, duckduckgo
+from tools import wiki, eliza, twitter, duckduckgo, contextualwebsearch
 
 
 NERV_PROB = .1  # probability of annoyance in group channels
@@ -112,6 +112,15 @@ class BrianBot(discord.Client):
         if msgl.startswith("!duck") or msgl.startswith("!dd"):
             response = duckduckgo.duckduckgo(msg[msg.find(" "):].strip("` "))
 
+        if msgl.startswith("!web"):
+            response = self.get_contextualwebsearch_results("web", msg[msg.find(" "):].strip("` "))
+
+        if msgl.startswith("!new"):
+            response = self.get_contextualwebsearch_results("news", msg[msg.find(" "):].strip("` "))
+
+        if msgl.startswith("!i"):
+            response = self.get_contextualwebsearch_results("image", msg[msg.find(" "):].strip("` "))
+
         if response:
             if isinstance(response, (tuple, list)):
                 for r in response:
@@ -198,6 +207,21 @@ class BrianBot(discord.Client):
         if not tweets:
             return "Nix"
         return [twitter.tweet_to_discord(t) for t in tweets]
+
+    def get_contextualwebsearch_results(self, type, query):
+        count = 1
+        terms = query.split(" ")
+        if len(terms) > 1 and terms[0].isdigit():
+            count = min(100, int(terms[0]))
+            terms = terms[1:]
+            query = " ".join(terms)
+
+        if type == "web":
+            return contextualwebsearch.find_web(query, count=count)
+        elif type == "news":
+            return contextualwebsearch.find_news(query, count=count)
+        else:
+            return contextualwebsearch.find_images(query, count=count)
 
     async def on_ready(self):
         print('Logged in as')
