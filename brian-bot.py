@@ -5,7 +5,7 @@ import discord
 from tools.messages import *
 from tools.pyeval import evaluate_python
 from tools.nonsense import NONSENSE_GENERATORS
-from tools import wiki
+from tools import wiki, eliza
 
 
 NERV_PROB = .1  # probability of annoyance in group channels
@@ -16,13 +16,18 @@ def rand_choice(seq):
     return seq[random.randrange(len(seq))]
 
 
+class ChannelConfig:
+    def __init__(self):
+        self.nonsense = None
+        self.nonsense_key = ""
+        self.be_quite = False
+        self.be_eliza = False
+
+
 class BrianBot(discord.Client):
     def __init__(self, *args, **kwargs):
         super(BrianBot, self).__init__(*args, **kwargs)
-        self.nonsense = None
-        self.nonsense_key = ""
-        # set of channels
-        self.be_quite = set()
+        self.channel_config = dict()
 
     def get_members(self):
         members = set()
@@ -35,16 +40,17 @@ class BrianBot(discord.Client):
     def get_member_names(self):
         return [m.display_name for m in self.get_members()]
 
-    def set_nonsense(self, nonsense_key):
-        if self.nonsense_key == nonsense_key:
+    def set_nonsense(self, channel, nonsense_key):
+        config = self.channel_config[channel]
+        if config.nonsense_key == nonsense_key:
             return []
         nonsense = NONSENSE_GENERATORS[nonsense_key]
-        print("switching nonsense generator to %s" % nonsense.name)
-        self.nonsense = nonsense
-        self.nonsense_key = nonsense_key
+        print("switching %s nonsense generator to %s" % (channel, nonsense.name))
+        config.nonsense = nonsense
+        config.nonsense_key = nonsense_key
         # Discord doesn't like switching the username too often!!
         # Also, changing the avatar or name seems to work only occasionally...
-        #yield from self.edit_profile(username=self.nonsense.name,
+        #yield from self.edit_profile(username=config.nonsense.name)#,
         #                             avatar=nonsense.avatar)
         return []
 
@@ -71,14 +77,18 @@ class BrianBot(discord.Client):
         if message.author == self.user:
             return []
 
-        if self.nonsense is None:
-            yield from self.set_nonsense("brian")
-
         msg = message.content.strip("` ")
         msgl = msg.lower()
         channel = message.channel
 
-        # --- commands ---
+        if channel not in self.channel_config:
+            self.channel_config[channel] = ChannelConfig()
+        config = self.channel_config[channel]
+
+        if config.nonsense is None:
+            yield from self.set_nonsense(channel, "brian")
+
+    # --- commands ---
 
         response = None
 
@@ -101,25 +111,33 @@ class BrianBot(discord.Client):
         nerv_prob = 1. if str(message.channel.type) == "private" else NERV_PROB
 
         # is bot called by name?
-        is_mentioned = self.user.name.lower() in msgl or "botti" in msgl
-        for x in NONSENSE_GENERATORS:
-            if x in msgl or NONSENSE_GENERATORS[x].name in msgl:
-                is_mentioned = True
-                yield from self.set_nonsense(x)
-                break
+        is_mentioned = self.user.name.lower() in msgl or "botti" in msgl or "eliza" in msgl
+        if "eliza" in msgl:
+            config.be_eliza = True
+            config.nonsense_key = "eliza"
+        else:
+            for x in NONSENSE_GENERATORS:
+                if x in msgl or NONSENSE_GENERATORS[x].name in msgl:
+                    is_mentioned = True
+                    config.be_eliza = False
+                    yield from self.set_nonsense(channel, x)
+                    break
 
         if is_mentioned:
             if "schweig" in msgl or "shut up" in msgl or "schnauze" in msgl or "klappe" in msgl:
-                self.be_quite.add(channel)
+                config.be_quite = True
             else:
-                if channel in self.be_quite:
-                    self.be_quite.remove(channel)
+                config.be_quite = False
 
-        if channel not in self.be_quite and (is_mentioned or random.uniform(0, 1) <= nerv_prob):
+        if not config.be_quite and (is_mentioned or random.uniform(0, 1) <= nerv_prob or config.be_eliza):
             yield from self.send_typing(channel)
             time.sleep(random.uniform(.5, 2))
-            yield from self._send(channel, self.nonsense.rand(0, self.get_member_names(),
-                                                              random.uniform(0, 1) <= NAME_LINE_PROB))
+            if config.be_eliza:
+                yield from self._send(channel, eliza.analyze(msg))
+            else:
+                yield from self._send(channel,
+                                      config.nonsense.rand(0, self.get_member_names(),
+                                                           random.uniform(0, 1) <= NAME_LINE_PROB))
         return []
 
     def get_wiki_results(self, term):
