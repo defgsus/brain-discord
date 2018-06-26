@@ -5,7 +5,7 @@ import discord
 from tools.messages import *
 from tools.pyeval import evaluate_python
 from tools.nonsense import NONSENSE_GENERATORS
-from tools import wiki, eliza
+from tools import wiki, eliza, twitter
 
 
 NERV_PROB = .1  # probability of annoyance in group channels
@@ -28,6 +28,7 @@ class BrianBot(discord.Client):
     def __init__(self, *args, **kwargs):
         super(BrianBot, self).__init__(*args, **kwargs)
         self.channel_config = dict()
+        self.twitter = None
 
     def get_members(self):
         members = set()
@@ -95,6 +96,8 @@ class BrianBot(discord.Client):
         if msgl.startswith("!py"):
             yield from self.send_typing(channel)
             response = evaluate_python(msg[3:].strip("` "))
+            if not response:
+                response = "Nix"
             if "*" in response:
                 response = "`%s`" % response
 
@@ -102,8 +105,16 @@ class BrianBot(discord.Client):
             yield from self.send_typing(channel)
             response = self.get_wiki_results(msg[5:].strip("` "))
 
+        if msgl.startswith("!tw"):
+            yield from self.send_typing(channel)
+            response = self.get_twitter_results(msg[msg.find(" "):].strip("` "))
+
         if response:
-            yield from self._send(channel, response)
+            if isinstance(response, (tuple, list)):
+                for r in response:
+                    yield from self._send(channel, r)
+            else:
+                yield from self._send(channel, response)
             return []
 
         # --- random stuff ---
@@ -146,7 +157,7 @@ class BrianBot(discord.Client):
         terms = term.split(" ")
         while len(terms) > 1:
             if terms[0].isdigit() and limit is None:
-                limit = int(terms[0])
+                limit = min(100, int(terms[0]))
                 terms = terms[1:]
             elif len(terms[0]) == 2 and terms[0].isalpha() and cc is None:
                 cc = terms[0]
@@ -163,10 +174,27 @@ class BrianBot(discord.Client):
             if not results:
                 response = "Habe diesen Löffel gefunden, Herr!"
             else:
-                response = "\n".join(r["url"] for r in results)
+                response = [r["url"] for r in results]
         except BaseException as e:
             response = "`%s`" % e
         return response
+
+    def get_twitter_results(self, query):
+        count = 1
+        terms = query.split(" ")
+        if len(terms) > 1 and terms[0].isdigit():
+            count = min(100, int(terms[0]))
+            terms = terms[1:]
+            query = " ".join(terms)
+
+        if self.twitter is None:
+            self.twitter = twitter.TwitterClient()
+
+        tweets = self.twitter.search(query, count=count)
+
+        if not tweets:
+            return "Nix"
+        return [twitter.tweet_to_discord(t) for t in tweets]
 
     async def on_ready(self):
         print('Logged in as')
@@ -182,3 +210,4 @@ if __name__ == "__main__":
 
     bot = BrianBot()
     bot.run(BOT_TOKEN)
+
