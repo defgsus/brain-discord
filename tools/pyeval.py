@@ -22,7 +22,7 @@ def exec(*args, **kwargs):
     raise NotImplementedError("exec not allowed") 
 def eval(*args, **kwargs):
     raise NotImplementedError("eval not allowed")
-del __loader__
+__loader__ = None
 __builtins__.open = open
 __builtins__.__import__ = __import__
 __builtins__.exec = exec
@@ -63,5 +63,6 @@ if __name__ == "__main__":
     print(evaluate_python("open('/var/log/syslog').read(1000)"))
     print(evaluate_python('__import__("os").system("ls")'))
     print(evaluate_python('__builtins__.__import__("os").system("ls")'))
+    print(evaluate_python("__loader__"))
     #print(evaluate_python("time.sleep(10)"))
 
