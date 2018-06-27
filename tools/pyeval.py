@@ -37,12 +37,8 @@ __builtins__.exec = exec
 __builtins__.eval = eval
 __builtins__.compile = compile 
 
-%(lambda)s = lambda: %(code)s
-print(%(lambda)s())
-""" % {
-        "code": code,
-        "lambda": "_" + "".join(chr(random.randrange(48, 58)) for i in range(20))
-    }
+print((lambda: %s)())
+""" % code
     try:
         ret = subprocess.check_output(
             [python, "-c", code], stderr=subprocess.STDOUT,
