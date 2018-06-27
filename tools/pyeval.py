@@ -14,9 +14,10 @@ def evaluate_python_queue(code, queue):
 from random import *
 from math import *
 from decimal import Decimal as D
-def open(*args): 
-   raise NotImplementedError("file access is not allowed")
-__import__ = None
+def open(*args, **kwargs): 
+    raise NotImplementedError("file access is not allowed")
+def __import__(*args, **kwargs):
+    raise NotImplementedError("module imports not allowed") 
 _func123_ = lambda: %s
 print(_func123_())
 """ % code
