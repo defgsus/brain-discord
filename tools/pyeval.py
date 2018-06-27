@@ -22,6 +22,7 @@ def exec(*args, **kwargs):
     raise NotImplementedError("exec not allowed") 
 def eval(*args, **kwargs):
     raise NotImplementedError("eval not allowed")
+del __loader__
 __builtins__.open = open
 __builtins__.__import__ = __import__
 __builtins__.exec = exec
