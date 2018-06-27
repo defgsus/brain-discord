@@ -16,6 +16,7 @@ from math import *
 from decimal import Decimal as D
 def open(*args): 
    raise NotImplementedError("file access is not allowed")
+__import__ = None
 _func123_ = lambda: %s
 print(_func123_())
 """ % code
@@ -24,7 +25,7 @@ print(_func123_())
             [python, "-c", code], stderr=subprocess.STDOUT,
         )
     except subprocess.CalledProcessError as e:
-        queue.put(e.output.decode("utf-8").strip().split("\n")[-1])
+        queue.put("`%s`" % e.output.decode("utf-8").strip().split("\n")[-1])
         return
     queue.put(ret.decode("utf-8").strip())
 
@@ -50,5 +51,6 @@ if __name__ == "__main__":
     print(evaluate_python("'ä' * 10"))
     print(evaluate_python("blub"))
     print(evaluate_python("open('/var/log/syslog').read(1000)"))
+    print(evaluate_python('__import__("os").system("ls")'))
     #print(evaluate_python("time.sleep(10)"))
 
