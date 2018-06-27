@@ -2,6 +2,7 @@ import subprocess
 import sys
 import multiprocessing
 import queue
+import random
 
 __all__ = ("evaluate_python",)
 
@@ -13,7 +14,9 @@ def evaluate_python_queue(code, queue):
     code = """
 from random import *
 from math import *
-from decimal import Decimal as D
+from decimal import Decimal
+D = Decimal
+
 def open(*args, **kwargs): 
     raise NotImplementedError("file access is not allowed")
 def __import__(*args, **kwargs):
@@ -22,16 +25,24 @@ def exec(*args, **kwargs):
     raise NotImplementedError("exec not allowed") 
 def eval(*args, **kwargs):
     raise NotImplementedError("eval not allowed")
+def compile(*args, **kwargs):
+    raise NotImplementedError("compile not allowed")
+
 __loader__ = None
 __builtins__.__loader__ = None
 __builtins__.__spec__ = None
 __builtins__.open = open
 __builtins__.__import__ = __import__
 __builtins__.exec = exec
-__builtins__.eval = eval 
-_func123_ = lambda: %s
-print(_func123_())
-""" % code
+__builtins__.eval = eval
+__builtins__.compile = compile 
+
+%(lambda)s = lambda: %(code)s
+print(%(lambda)s())
+""" % {
+        "code": code,
+        "lambda": "_" + "".join(chr(random.randrange(48, 58)) for i in range(20))
+    }
     try:
         ret = subprocess.check_output(
             [python, "-c", code], stderr=subprocess.STDOUT,
