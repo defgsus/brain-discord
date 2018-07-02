@@ -2,7 +2,6 @@ import subprocess
 import sys
 import multiprocessing
 import queue
-import random
 
 __all__ = ("evaluate_python",)
 

@@ -5,7 +5,7 @@ import discord
 from tools.messages import *
 from tools.pyeval import evaluate_python
 from tools.nonsense import NONSENSE_GENERATORS
-from tools import wiki, eliza, twitter, duckduckgo, contextualwebsearch
+from tools import wiki, eliza, twitter, duckduckgo, contextualwebsearch, gnd
 
 
 NERV_PROB = .1  # probability of annoyance in group channels
@@ -121,6 +121,9 @@ class BrianBot(discord.Client):
         if msgl.startswith("!i"):
             response = self.get_contextualwebsearch_results("image", msg[msg.find(" "):].strip("` "))
 
+        if msgl.startswith("!gnd"):
+            response = gnd.get_discord_result(msg[msg.find(" "):].strip("` "))
+
         if response:
             if isinstance(response, (tuple, list)):
                 for r in response:
@@ -233,8 +236,12 @@ class BrianBot(discord.Client):
 
 
 if __name__ == "__main__":
-    from tools.bot_credentials import BOT_TOKEN
+    if 1:
+        from tools.bot_credentials import BOT_TOKEN
 
-    bot = BrianBot()
-    bot.run(BOT_TOKEN)
+        bot = BrianBot()
+        bot.run(BOT_TOKEN)
+
+
+
 
