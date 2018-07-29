@@ -32,6 +32,15 @@ class Fefe(object):
                 return p
         return None
 
+    def get_all_posts(self):
+        posts = []
+        for year in range(2005, datetime.date.today().year+1):
+            for month in range(1, 13):
+                if year == 2005 and month < 3:
+                    continue
+                posts += self.get_posts_by_year_month(year, month)
+        return posts
+
     def get_random_post(self, year=None, month=None, day=None):
         while True:
             ryear = year or random.randrange(2005, datetime.date.today().year+1)

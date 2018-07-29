@@ -135,7 +135,7 @@ def parse_blog_html(markup, database=None):
             markup_part = markup[days[i][0]:days[i+1][0]]
         else:
             markup_part = markup[days[i][0]:]
-        print(days[i][1])
+        #print(days[i][1])
         posts_markup = []
         for match in re.findall(r'<a href="(\?ts=[0-9a-z]+)">\[l\]</a>(.+)', markup_part):
             url = match[0]
