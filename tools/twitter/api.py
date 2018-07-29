@@ -7,7 +7,10 @@ class TwitterClient:
         from .credentials import TWITTER_APP_KEY, TWITTER_ACCESS_TOKEN
         self.twitter = twitter or Twython(TWITTER_APP_KEY, access_token=TWITTER_ACCESS_TOKEN)
 
-    def search(self, q, count=10000, tweet_mode="extended", result_type="mixed", **params):
+    def search(self, q, count=10, tweet_mode="extended", result_type="mixed", **params):
+        """
+        https://developer.twitter.com/en/docs/tweets/search/api-reference/get-search-tweets.html
+        """
         parms = dict(q=q, count=min(count, 100), tweet_mode=tweet_mode, result_type=result_type, include_entities=1)
         parms.update(params)
         ret = list()
@@ -20,7 +23,7 @@ class TwitterClient:
             if len(ret) >= count:
                 break
             next = res["search_metadata"].get("next_results")
-            #print("------------------", next)
+
             if not next or len(next) < 10:
                 break
             max_id = next.split("max_id=")[-1].split("&")[0]

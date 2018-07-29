@@ -201,17 +201,26 @@ class BrianBot(discord.Client):
         return response
 
     def get_twitter_results(self, query):
-        count = 1
+        params = {
+            "count": 1,
+            "lang": "de",
+        }
         terms = query.split(" ")
-        if len(terms) > 1 and terms[0].isdigit():
-            count = min(100, int(terms[0]))
-            terms = terms[1:]
-            query = " ".join(terms)
+        while len(terms) > 1:
+            if terms[0].isalpha() and len(terms[0]) == 2:
+                params["lang"] = terms[0].lower()
+                terms = terms[1:]
+            elif terms[0].isdigit():
+                params["count"] = min(100, int(terms[0]))
+                terms = terms[1:]
+            else:
+                break
+        query = " ".join(terms)
 
         if self.twitter is None:
             self.twitter = twitter.TwitterClient()
 
-        tweets = self.twitter.search(query, count=count)
+        tweets = self.twitter.search(query, **params)
 
         if not tweets:
             return "Nix"
