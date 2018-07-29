@@ -295,9 +295,11 @@ if __name__ == "__main__":
     if 1:
         from tools.bot_credentials import BOT_TOKEN
 
-        bot = BrianBot()
-        bot.run(BOT_TOKEN)
-
-
-
-
+        while True:
+            try:
+                bot = BrianBot()
+                bot.run(BOT_TOKEN)
+            except KeyboardInterrupt:
+                exit(-1)
+            except BaseException as e:
+                print(e)
