@@ -35,8 +35,12 @@ class TokenIndex:
         """Convert a list if ids to a list of tokens"""
         return [self.id_to_token(t, default) for t in ids]
 
+    def __contains__(self, item):
+        """See if token (str) or token_id (int) is in index"""
+        return item in self._id_to_token or item in self._token_to_id
+
     def __getitem__(self, item):
-        """Convert either str to int, or int to str, depending on type"""
+        """Convert either token to id (str to int), or id to token (int to str), depending on type"""
         if isinstance(item, int):
             return self.id_to_token(item)
         return self.token_to_id(item)

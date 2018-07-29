@@ -1,6 +1,7 @@
 import unittest
 
-from tools.words.tokenizer import *
+from tools.tokens.tokenizer import *
+from tools.tokens.TokenCounter import TokenCounter
 
 
 class TestTokenIndex(unittest.TestCase):
@@ -58,3 +59,24 @@ class TestCharwiseTokenizer(unittest.TestCase):
                           'Text', '.', '.', '.'],
                          tokenizer.ids_to_tokens(tokens))
 
+
+TEXT_2 = """
+Ein Text mit Wiederholungen! Weil, Wiederholungen sind auch wichtig.
+Gerade im Text. Dort sind Wiederholungen ganz wichtig!
+"""
+
+
+class TestTokenCounter(unittest.TestCase):
+
+    def test_counter_with_default_tokenizer(self):
+        counter = TokenCounter()
+        counter.add_text(TEXT_2)
+
+        self.assertEqual(17, counter.num_all)
+        self.assertEqual(3, counter.token_count("Wiederholungen"))
+        self.assertEqual(2, counter.token_count("Text"))
+        self.assertEqual(2, counter.token_count("sind"))
+        self.assertEqual(2, counter.token_count("wichtig"))
+        self.assertEqual(1, counter.token_count("ganz"))
+
+        self.assertEqual(3./17., counter.token_freq("Wiederholungen"))
