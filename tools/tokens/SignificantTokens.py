@@ -1,8 +1,8 @@
 import sys
 
 
-class SignificantWords:
-    def __init__(self, counter=None, basis=None, factor=None, max_count=200):
+class SignificantTokens:
+    def __init__(self, counter=None, basis=None, factor=2., max_count=200):
         self.max_count = max_count
         self.tokens = None
         self.counter = None
@@ -11,7 +11,12 @@ class SignificantWords:
         if counter:
             self.init(counter, basis, factor, max_count)
 
+    @property
+    def index(self):
+        return self.basis.index
+
     def init(self, counter, basis, factor, max_count=200):
+        assert counter.tokenizer.index == basis.tokenizer.index
         def _significance(key):
             return -(counter.token_id_freq(key) - factor * basis.token_id_freq(key))
         def _save_div(x, y):
@@ -41,12 +46,16 @@ class SignificantWords:
         hitlist_ids = self.hitlist_ids()
         if num is not None:
             hitlist_ids = hitlist_ids[:num]
-        for word in hitlist_ids:
-            h = self.tokens[word]
 
-            line = "%30s %6sx %8s %8s" % (
-                word, round(h["higher"]),
-                "1/%s" % round(1./h["token_id_freq"]),
+        outp.write("%30s %7s %8s %9s\n" % (
+            "token", "higher", "freq", "base freq"
+        ))
+        for token_id in hitlist_ids:
+            h = self.tokens[token_id]
+
+            outp.write("%30s %6sx %8s %9s\n" % (
+                self.index.id_to_token(token_id),
+                round(h["higher"]),
+                "1/%s" % round(1./h["freq"]),
                 "1/%s" % round(1./h["basefreq"])
-            )
-            outp.write(line+"\n")
+            ))

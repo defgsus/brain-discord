@@ -1,5 +1,5 @@
 from tools.fefe import Fefe
-from tools.tokens import TokenCounter
+from tools.tokens import TokenCounter, SignificantTokens
 
 
 fefe = Fefe()
@@ -17,10 +17,18 @@ if 0:
     print("text size in mb: %s" % (text_size // 1024 // 1024))
 
 if 1:
-    counter = TokenCounter()
-    posts = fefe.get_all_posts()
+    counter_base = TokenCounter()
+    #posts = fefe.get_all_posts()
+    posts = fefe.get_posts_by_year(2017)
     for p in posts:
-        counter.add_text(p["text"])
-    counter.dump_hitlist(100)
+        p["textl"] = p["text"].lower()
+        counter_base.add_text(p["textl"])
+    counter_base.dump_hitlist(100)
 
+    for p in posts:
+        print("-"*50)
+        counter = TokenCounter(tokenizer=counter_base.tokenizer)
+        counter.add_text(p["textl"])
+        significant = SignificantTokens(counter, counter_base, 2.)
+        significant.dump_hitlist()
 

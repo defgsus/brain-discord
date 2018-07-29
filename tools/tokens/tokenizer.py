@@ -1,11 +1,13 @@
 
-DEFAULT_STRIP_CHARS = "@#…-'\"„“»«()&"
+DEFAULT_STRIP_CHARS = "@#…-'\"„“”»«()&"
 DEFAULT_SPLIT_CHARS = ",.!?:;\""
+
+TokenId = int
 
 
 class TokenIndex:
     """
-    Mapping between str and int.
+    Mapping between str and TokenId (int).
     Index of all known tokens
     """
     def __init__(self):
@@ -18,7 +20,7 @@ class TokenIndex:
         If token is not known, an id will be created
         """
         if tok not in self._token_to_id:
-            id = len(self._token_to_id) + 1
+            id = TokenId(len(self._token_to_id) + 1)
             self._token_to_id[tok] = id
             self._id_to_token[id] = tok
         return self._token_to_id[tok]
@@ -41,7 +43,7 @@ class TokenIndex:
 
     def __getitem__(self, item):
         """Convert either token to id (str to int), or id to token (int to str), depending on type"""
-        if isinstance(item, int):
+        if isinstance(item, TokenId):
             return self.id_to_token(item)
         return self.token_to_id(item)
 
@@ -49,7 +51,7 @@ class TokenIndex:
         return {str(i): self._id_to_token[i] for i in self._id_to_token}
 
     def from_json(self, data):
-        self._id_to_token = {int(k): data[k] for k in data}
+        self._id_to_token = {TokenId(k): data[k] for k in data}
         self._token_to_id = {self._id_to_token[k]: k for k in self._id_to_token}
 
 

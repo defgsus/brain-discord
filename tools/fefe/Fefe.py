@@ -25,6 +25,12 @@ class Fefe(object):
 
         return self._posts_per_month[key]
 
+    def get_posts_by_year(self, year):
+        posts = []
+        for month in range(1, 13):
+            posts += self.get_posts_by_year_month(year, month)
+        return posts
+
     def get_post(self, year, month, day, count):
         posts = self.get_posts_by_year_month(year, month)
         for p in posts:
