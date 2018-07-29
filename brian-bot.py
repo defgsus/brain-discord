@@ -1,11 +1,12 @@
 import random
 import time
 import discord
+import datetime
 
 from tools.messages import *
 from tools.pyeval import evaluate_python
 from tools.nonsense import NONSENSE_GENERATORS
-from tools import wiki, eliza, twitter, duckduckgo, contextualwebsearch, gnd
+from tools import wiki, eliza, twitter, duckduckgo, contextualwebsearch, gnd, fefe
 
 
 NERV_PROB = .1  # probability of annoyance in group channels
@@ -29,6 +30,7 @@ class BrianBot(discord.Client):
         super(BrianBot, self).__init__(*args, **kwargs)
         self.channel_config = dict()
         self.twitter = None
+        self.fefe = None
 
     def get_members(self):
         members = set()
@@ -89,7 +91,7 @@ class BrianBot(discord.Client):
         if config.nonsense is None:
             yield from self.set_nonsense(channel, "brian")
 
-    # --- commands ---
+        # --- commands ---
 
         response = None
 
@@ -101,12 +103,13 @@ class BrianBot(discord.Client):
             if "*" in response:
                 response = "`%s`" % response
 
-        if msgl.startswith("!wiki"):
+        if msgl.startswith("!"):
             yield from self.send_typing(channel)
+
+        if msgl.startswith("!wiki"):
             response = self.get_wiki_results(msg[5:].strip("` "))
 
         if msgl.startswith("!tw"):
-            yield from self.send_typing(channel)
             response = self.get_twitter_results(msg[msg.find(" "):].strip("` "))
 
         if msgl.startswith("!duck") or msgl.startswith("!dd"):
@@ -123,6 +126,9 @@ class BrianBot(discord.Client):
 
         if msgl.startswith("!gnd"):
             response = gnd.get_discord_result(msg[msg.find(" "):].strip("` "))
+
+        if msgl.startswith("!fefe"):
+            response = self.get_fefe(msg[5:].strip("` "))
 
         if response:
             if isinstance(response, (tuple, list)):
@@ -225,6 +231,47 @@ class BrianBot(discord.Client):
             return contextualwebsearch.find_news(query, count=count)
         else:
             return contextualwebsearch.find_images(query, count=count)
+
+    def get_fefe(self, params):
+        if self.fefe is None:
+            self.fefe = fefe.Fefe()
+
+        post = None
+        try:
+            date = datetime.datetime.strptime(params[:13], "%Y-%m-%d-%H")
+            post = self.fefe.get_post(date.year, date.month, date.day, date.hour)
+            if not post:
+                post = "Nix!"
+        except ValueError:
+            try:
+                date = datetime.datetime.strptime(params[:10], "%Y-%m-%d")
+                post = self.fefe.get_random_post(year=date.year, month=date.month, day=date.day)
+                if not post:
+                    post = "Nix!"
+            except ValueError:
+                try:
+                    date = datetime.datetime.strptime(params[:7], "%Y-%m")
+                    post = self.fefe.get_random_post(year=date.year, month=date.month)
+                    if not post:
+                        post = "Nix!"
+                except ValueError:
+                    try:
+                        date = datetime.datetime.strptime(params[:4], "%Y")
+                        post = self.fefe.get_random_post(year=date.year)
+                        if not post:
+                            post = "Nix!"
+                    except ValueError:
+                        pass
+
+        if not post:
+            post = self.fefe.get_random_post()
+
+        if not post:
+            return "Nix!"
+        else:
+            if isinstance(post, str):
+                return post
+            return self.fefe.render_post_to_discord(post)
 
     async def on_ready(self):
         print('Logged in as')
