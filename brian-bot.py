@@ -245,6 +245,8 @@ class BrianBot(discord.Client):
         if self.fefe is None:
             self.fefe = fefe.Fefe()
 
+        NUM_POSTS = 2
+
         post = None
         try:
             date = datetime.datetime.strptime(params[:13], "%Y-%m-%d-%H")
@@ -273,7 +275,15 @@ class BrianBot(discord.Client):
                         pass
 
         if not post:
-            post = self.fefe.get_random_post()
+            if not params:
+                post = self.fefe.get_random_post()
+            else:
+                posts = self.fefe.search_posts(params)
+                if not posts:
+                    return "Nix!"
+                else:
+                    return [self.fefe.render_post_to_discord(post)
+                            for post in posts[:NUM_POSTS]]
 
         if not post:
             return "Nix!"
@@ -295,11 +305,15 @@ if __name__ == "__main__":
     if 1:
         from tools.bot_credentials import BOT_TOKEN
 
-        while True:
-            try:
-                bot = BrianBot()
-                bot.run(BOT_TOKEN)
-            except KeyboardInterrupt:
-                exit(-1)
-            except BaseException as e:
-                print(e)
+        if 1:
+            bot = BrianBot()
+            bot.run(BOT_TOKEN)
+        else:
+            while True:
+                try:
+                    bot = BrianBot()
+                    bot.run(BOT_TOKEN)
+                except KeyboardInterrupt:
+                    exit(-1)
+                except BaseException as e:
+                    print(e)

@@ -5,6 +5,7 @@ import random
 
 from .download import download_fefe
 from .parse import parse_blog_html
+from tools.tokens import CorpusIndex
 
 
 class Fefe(object):
@@ -13,6 +14,15 @@ class Fefe(object):
 
     def __init__(self):
         self._posts_per_month = dict()
+        self._corpus = None
+
+    def _build_index(self):
+        #posts = self.get_all_posts()
+        posts = self.get_posts_by_year(2011)
+        for p in posts:
+            p["key"] = "%s-%s" % (p["date"].strftime("%Y-%m-%d"), p["day_index"])
+            self._corpus.add_document(p["key"], p["text"].lower())
+        self._corpus.build_index()
 
     def get_posts_by_year_month(self, year, month):
         key = (year, month)
@@ -31,12 +41,17 @@ class Fefe(object):
             posts += self.get_posts_by_year_month(year, month)
         return posts
 
-    def get_post(self, year, month, day, count):
+    def get_post(self, year, month, day, day_index):
         posts = self.get_posts_by_year_month(year, month)
         for p in posts:
-            if p["date"].day == day and p["day_index"] == count:
+            if p["date"].day == day and p["day_index"] == day_index:
                 return p
         return None
+
+    def get_post_by_key(self, key):
+        date = datetime.datetime.strptime(key[:10], "%Y-%m-%d")
+        day_index = int(key[11:])
+        return self.get_post(date.year, date.month, date.day, day_index)
 
     def get_all_posts(self):
         posts = []
@@ -77,8 +92,10 @@ class Fefe(object):
             elif name == "p":
                 inserts.append([end, "\n"])
             elif name in ("pre", "blockquote"):
-                inserts.append([start, "```\n"])
-                inserts.append([end, "```"])
+                inserts.append([start, "\n```\n"])
+                inserts.append([end, "```\n"])
+            elif name == "li":
+                inserts.append([start, "\n- "])
 
         text = post["text"]
         if not inserts:
@@ -102,6 +119,20 @@ class Fefe(object):
 
         links = "\n".join(links)
 
-        markup = "`%s`\n%s\n%s" % (post["date"], markup, links)
+        markup = "`%s #%s`\n%s\n%s" % (post["date"], post["day_index"], markup, links)
 
         return markup
+
+    def search_posts(self, query):
+        if self._corpus is None:
+            self._corpus = CorpusIndex()
+            self._build_index()
+        query = query.lower()
+        weighted_doc_ids = self._corpus.weighted_document_ids_for_token(query)
+        if not weighted_doc_ids:
+            return None
+        print(weighted_doc_ids)
+        return [
+            self.get_post_by_key(key)
+            for key in sorted(weighted_doc_ids, key=lambda k: -weighted_doc_ids[k])
+        ]
