@@ -17,8 +17,14 @@ class Fefe(object):
         self._corpus = None
 
     def _build_index(self):
-        #posts = self.get_all_posts()
-        posts = self.get_posts_by_year(2011)
+        from settings import FEFE_INDEX
+        if isinstance(FEFE_INDEX, int):
+            posts = self.get_posts_by_year(2011)
+        elif FEFE_INDEX == "all":
+            posts = self.get_all_posts()
+        else:
+            raise ValueError("Invalid FEFE_INDEX '%s'" % FEFE_INDEX)
+
         for p in posts:
             p["key"] = "%s-%s" % (p["date"].strftime("%Y-%m-%d"), p["day_index"])
             self._corpus.add_document(p["key"], p["text"].lower())
@@ -128,10 +134,13 @@ class Fefe(object):
             self._corpus = CorpusIndex()
             self._build_index()
         query = query.lower()
-        weighted_doc_ids = self._corpus.weighted_document_ids_for_token(query)
+        weighted_doc_ids = self._corpus.weighted_document_ids_for_tokens_AND(query.split())
         if not weighted_doc_ids:
             return None
-        print(weighted_doc_ids)
+
+        if 0:
+            print(", ".join("%s: %s" % (id, weighted_doc_ids[id])
+                            for id in sorted(weighted_doc_ids, key=lambda x: weighted_doc_ids[x])))
         return [
             self.get_post_by_key(key)
             for key in sorted(weighted_doc_ids, key=lambda k: -weighted_doc_ids[k])

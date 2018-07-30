@@ -245,7 +245,7 @@ class BrianBot(discord.Client):
         if self.fefe is None:
             self.fefe = fefe.Fefe()
 
-        NUM_POSTS = 2
+        NUM_POSTS = 1
 
         post = None
         try:
@@ -272,7 +272,11 @@ class BrianBot(discord.Client):
                         if not post:
                             post = "Nix!"
                     except ValueError:
-                        pass
+                        try:
+                            NUM_POSTS = int(params.split()[0])
+                            params = " ".join(params.split()[1:])
+                        except ValueError:
+                            pass
 
         if not post:
             if not params:
@@ -302,10 +306,17 @@ class BrianBot(discord.Client):
 
 
 if __name__ == "__main__":
+
+    import settings
+    for key in dir(settings):
+        if key == "__builtins__":
+            break
+        print("%s: %s" % (key, getattr(settings, key)))
+
     if 1:
         from tools.bot_credentials import BOT_TOKEN
 
-        if 1:
+        if not settings.INFINITE_BOT_RUN:
             bot = BrianBot()
             bot.run(BOT_TOKEN)
         else:

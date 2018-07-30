@@ -54,5 +54,18 @@ if 0:
 
 if 1:
     fefe = Fefe()
-    posts = fefe.search_posts("menschenleben")
-    print(posts)
+    while True:
+        query = input(">")
+        if query == "q":
+            break
+
+        posts = fefe.search_posts(query)
+
+        relations = fefe._corpus._relation.get_relations(fefe._corpus.index.token_to_id(query))
+        if relations:
+            for token_id in sorted(relations, key=lambda x: relations[x]):
+                print(relations[token_id], fefe._corpus.index.id_to_token(token_id))
+
+        print("%s posts" % len(posts))
+        for p in posts[:2]:
+            print(p)

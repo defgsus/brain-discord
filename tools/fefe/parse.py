@@ -71,6 +71,8 @@ class PostParser(HTMLParser):
             if self.post:
                 self.post["text"] += "\n"
             return
+        if not self.post["text"].endswith(" "):
+            self.post["text"] += " "
         #print("OPEN", tag, self.tags)
         self.push_tag(tag)
 
@@ -89,6 +91,8 @@ class PostParser(HTMLParser):
                     else:
                         self.pop_tag()
                         break
+            if not self.post["text"].endswith(" "):
+                self.post["text"] += " "
 
     def handle_data(self, data):
         start_space = data.startswith(" ")
@@ -146,6 +150,7 @@ def parse_blog_html(markup, database=None):
             p = PostParser()
             p.feed(post_markup[1])
             post = p.post
+            post["text"] = post["text"].strip()
             post["date"] = days[i][1].date()
             post["url"] = "http://blog.fefe.de%s" % post_markup[0]
             post["day_index"] = len(posts_markup)-1-j
