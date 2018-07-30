@@ -18,6 +18,7 @@ class Fefe(object):
 
     def _build_index(self):
         from settings import FEFE_INDEX
+        print("building fefe index")
         if isinstance(FEFE_INDEX, (tuple, list)):
             posts = []
             for year in FEFE_INDEX:
@@ -133,10 +134,18 @@ class Fefe(object):
 
         return markup
 
+    def is_search_ready(self):
+        return self._corpus and self._corpus.is_ready()
+
     def search_posts(self, query):
         if self._corpus is None:
+            from threading import Thread
             self._corpus = CorpusIndex()
-            self._build_index()
+            Thread(target=self._build_index).start()
+
+        if not self.is_search_ready():
+            return None
+
         query = query.lower()
         weighted_doc_ids = self._corpus.weighted_document_ids_for_tokens_AND(query.split())
         if not weighted_doc_ids:

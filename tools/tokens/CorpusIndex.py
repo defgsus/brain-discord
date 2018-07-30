@@ -5,11 +5,15 @@ from .TokenRelation import TokenRelation
 class CorpusIndex:
 
     def __init__(self, tokenizer=None):
+        self._index_ready = False
         self.tokenizer = tokenizer or SimpleTokenizer()
         self._documents = dict()
         self._base_counter = TokenCounter(tokenizer=self.tokenizer)
         self._relation = TokenRelation(tokenizer=self.tokenizer)
         self._token_id_to_document_ids = dict()
+
+    def is_ready(self):
+        return self._index_ready
 
     @property
     def index(self):
@@ -43,6 +47,7 @@ class CorpusIndex:
                 else:
                     self._token_id_to_document_ids[token_id].add(document_id)
         self._relation.remove_below(2.)
+        self._index_ready = True
 
     def document_ids_for_token_id(self, token_id):
         return self._token_id_to_document_ids.get(token_id)

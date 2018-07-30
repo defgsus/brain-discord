@@ -284,12 +284,10 @@ class BrianBot(discord.Client):
             else:
                 if not params.strip():
                     params = str(NUM_POSTS)
-                try:
-                    posts = self.fefe.search_posts(params)
-                except BaseException as e:
-                    print(e)
-                    raise e
+                posts = self.fefe.search_posts(params)
                 if not posts:
+                    if not self.fefe.is_search_ready():
+                        return "`Suchindex wird aufgebaut`"
                     return "Nix!"
                 else:
                     return [self.fefe.render_post_to_discord(post)
