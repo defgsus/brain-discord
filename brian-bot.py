@@ -282,12 +282,18 @@ class BrianBot(discord.Client):
             if not params:
                 post = self.fefe.get_random_post()
             else:
+                self.fefe.init_search()
+                if not self.fefe.is_search_ready():
+                    return "`Suchindex wird aufgebaut`"
+
                 if not params.strip():
                     params = str(NUM_POSTS)
+
+                if params.startswith("#"):
+                    return self.fefe.get_relations(params[1:])
+
                 posts = self.fefe.search_posts(params)
                 if not posts:
-                    if not self.fefe.is_search_ready():
-                        return "`Suchindex wird aufgebaut`"
                     return "Nix!"
                 else:
                     return [self.fefe.render_post_to_discord(post)

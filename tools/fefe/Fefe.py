@@ -143,15 +143,27 @@ class Fefe(object):
 
         return markup
 
-    def is_search_ready(self):
-        return self._corpus and self._corpus.is_ready()
-
-    def search_posts(self, query):
+    def init_search(self):
         if self._corpus is None:
             from threading import Thread
             self._corpus = CorpusIndex()
             Thread(target=self._build_index).start()
 
+    def is_search_ready(self):
+        return self._corpus and self._corpus.is_ready()
+
+    def get_relations(self, token):
+        if not self.is_search_ready():
+            return None
+        relations = self._corpus._relation.get_relations(self._corpus.index.token_to_id(token))
+        if not relations:
+            return None
+        ret = ""
+        for token_id in sorted(relations, key=lambda x: relations[x])[-30:]:
+            ret += "`%s x %s`\n" % (int(relations[token_id]), self._corpus.index.id_to_token(token_id))
+        return ret
+
+    def search_posts(self, query):
         if not self.is_search_ready():
             return None
 
