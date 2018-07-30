@@ -36,6 +36,12 @@ class Fefe(object):
         self._corpus.build_index()
 
     def get_posts_by_year_month(self, year, month):
+        if not 2005 <= year <= datetime.date.today().year:
+            return None
+        if not 1 <= month <= 12:
+            return None
+        if year == 2005 and month < 3:
+            return None
         key = (year, month)
         if key not in self._posts_per_month:
             filename = download_fefe(year, month, cache_dir=self.CACHE_DIR)
@@ -74,17 +80,20 @@ class Fefe(object):
         return posts
 
     def get_random_post(self, year=None, month=None, day=None):
-        while True:
+        num_tries = 0
+        posts = None
+        while num_tries < 100:
             ryear = year or random.randrange(2005, datetime.date.today().year+1)
             rmonth = month or random.randrange(3 if year==2005 else 1, 13)
             posts = self.get_posts_by_year_month(ryear, rmonth)
             if day:
-                posts = [p for p in posts if p["date"].day == day]
+                if posts:
+                    posts = [p for p in posts if p["date"].day == day]
                 if not posts:
                     return None
             if posts:
                 break
-
+            num_tries += 1
         return None if not posts else posts[random.randrange(len(posts))]
 
     def render_post_to_discord(self, post):
