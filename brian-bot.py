@@ -30,7 +30,8 @@ class BrianBot(discord.Client):
         super(BrianBot, self).__init__(*args, **kwargs)
         self.channel_config = dict()
         self.twitter = None
-        self.fefe = None
+        self.fefe = fefe.Fefe()
+        self.fefe.init_search()
 
     def get_members(self):
         members = set()
@@ -242,9 +243,6 @@ class BrianBot(discord.Client):
             return contextualwebsearch.find_images(query, count=count)
 
     def get_fefe(self, params):
-        if self.fefe is None:
-            self.fefe = fefe.Fefe()
-
         NUM_POSTS = 1
 
         post = None
@@ -296,8 +294,9 @@ class BrianBot(discord.Client):
                 if not posts:
                     return "Nix!"
                 else:
-                    return [self.fefe.render_post_to_discord(post)
-                            for post in posts[:NUM_POSTS]]
+                    ret = [self.fefe.render_post_to_discord(post)
+                           for post in posts[:NUM_POSTS]]
+                    return ["%s posts" % len(posts)] + ret
 
         if not post:
             return "Nix!"
