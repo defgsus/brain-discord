@@ -1,8 +1,8 @@
 
-INFINITE_BOT_RUN = False
+INFINITE_BOT_RUN = True
 
 # can be a year, or "all"
-FEFE_INDEX = 2011
+FEFE_INDEX = "all"
 
 
 try:
