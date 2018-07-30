@@ -18,8 +18,12 @@ class Fefe(object):
 
     def _build_index(self):
         from settings import FEFE_INDEX
-        if isinstance(FEFE_INDEX, int):
-            posts = self.get_posts_by_year(2011)
+        if isinstance(FEFE_INDEX, (tuple, list)):
+            posts = []
+            for year in FEFE_INDEX:
+                posts += self.get_posts_by_year(year)
+        elif isinstance(FEFE_INDEX, int):
+            posts = self.get_posts_by_year(FEFE_INDEX)
         elif FEFE_INDEX == "all":
             posts = self.get_all_posts()
         else:
@@ -83,7 +87,7 @@ class Fefe(object):
         return None if not posts else posts[random.randrange(len(posts))]
 
     def render_post_to_discord(self, post):
-        print(post)
+        # print(post)
 
         inserts = []
         for tag in post["tags"]:

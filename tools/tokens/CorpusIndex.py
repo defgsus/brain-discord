@@ -24,7 +24,9 @@ class CorpusIndex:
         self._base_counter.add_token_ids(token_ids)
 
     def build_index(self):
-        for document_id in self._documents:
+        for cur_num, document_id in enumerate(self._documents):
+            if cur_num % 1000 == 0:
+                print("%s/%s documents indexed" % (cur_num, len(self._documents)))
             token_ids = self._documents[document_id]["token_ids"]
             counter = TokenCounter(tokenizer=self.tokenizer)
             counter.add_token_ids(token_ids)
@@ -35,7 +37,7 @@ class CorpusIndex:
             self._documents[document_id]["significant_ids"] = significant_ids
             self._relation.add_relations(significant_ids)
             #print(self.index.ids_to_tokens(significant_ids))
-            for token_id in token_ids:
+            for token_id in significant_ids:
                 if token_id not in self._token_id_to_document_ids:
                     self._token_id_to_document_ids[token_id] = {document_id}
                 else:
@@ -77,9 +79,10 @@ class CorpusIndex:
         per_token_document_ids = []
         for tok in tokens:
             doc_ids = self.weighted_document_ids_for_token(tok)
-            per_token_document_ids.append(doc_ids)
-            for doc_id in doc_ids:
-                all_document_ids[doc_id] = all_document_ids.get(doc_id, 0) + doc_ids[doc_id]
+            if doc_ids:
+                per_token_document_ids.append(doc_ids)
+                for doc_id in doc_ids:
+                    all_document_ids[doc_id] = all_document_ids.get(doc_id, 0) + doc_ids[doc_id]
 
         and_ids = dict()
         for document_id in all_document_ids:

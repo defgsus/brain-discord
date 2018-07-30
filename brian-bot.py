@@ -275,14 +275,18 @@ class BrianBot(discord.Client):
                         try:
                             NUM_POSTS = int(params.split()[0])
                             params = " ".join(params.split()[1:])
-                        except ValueError:
+                        except (ValueError, IndexError):
                             pass
 
         if not post:
             if not params:
                 post = self.fefe.get_random_post()
             else:
-                posts = self.fefe.search_posts(params)
+                try:
+                    posts = self.fefe.search_posts(params)
+                except BaseException as e:
+                    print(e)
+                    raise e
                 if not posts:
                     return "Nix!"
                 else:
@@ -328,3 +332,4 @@ if __name__ == "__main__":
                     exit(-1)
                 except BaseException as e:
                     print(e)
+                    time.sleep(1)

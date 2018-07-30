@@ -58,6 +58,9 @@ class PostParser(HTMLParser):
 
     def handle_starttag(self, tag, attrs):
         #print("starttag", tag, self.tags)
+        #if not self.post["text"].endswith(" "):
+        #    self.post["text"] += " "
+
         if tag == "a":
             attrs = {t[0]: t[1] for t in attrs}
             self.cur_href = attrs.get("href")
@@ -71,8 +74,7 @@ class PostParser(HTMLParser):
             if self.post:
                 self.post["text"] += "\n"
             return
-        if not self.post["text"].endswith(" "):
-            self.post["text"] += " "
+
         #print("OPEN", tag, self.tags)
         self.push_tag(tag)
 
