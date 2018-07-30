@@ -282,6 +282,8 @@ class BrianBot(discord.Client):
             if not params:
                 post = self.fefe.get_random_post()
             else:
+                if not params.strip():
+                    params = str(NUM_POSTS)
                 try:
                     posts = self.fefe.search_posts(params)
                 except BaseException as e:
